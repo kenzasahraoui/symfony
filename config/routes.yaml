@@ -1,3 +1,10 @@
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+Evenemment_route:
+    path: /Evenement
+    controller: App\Controller\EvenementController::index
+
+Reservation_new:
+    path: /reservation/new
+    controller: App\Controller\ReservationController::new
