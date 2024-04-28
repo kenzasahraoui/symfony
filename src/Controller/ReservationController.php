@@ -8,17 +8,20 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Endroid\QrCode\QrCode;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Notifier\Recipient\Recipient;
 
 #[Route('/reservation')]
 class ReservationController extends AbstractController
 {
-    #[Route('/', name: 'app_reservation_index', methods: ['GET'])]
+    
+    #[Route('/reservation', name: 'app_reservation_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $reservations = $entityManager
-            ->getRepository(Reservation::class)
-            ->findAll();
+        $reservations = $this->getDoctrine()->getRepository(Reservation::class)->findAll();
 
         return $this->render('reservation/index.html.twig', [
             'reservations' => $reservations,
@@ -26,7 +29,7 @@ class ReservationController extends AbstractController
     }
 
     #[Route('/new', name: 'app_reservation_new', methods: ['GET', 'POST'])]
-       public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, MailerInterface $mailer): Response
     {
         $reservation = new Reservation();
 
@@ -34,13 +37,18 @@ class ReservationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Do not set $reservation->setIdUser() here
-
-            // Persist the Reservation object
             $entityManager->persist($reservation);
             $entityManager->flush();
 
-            return $this->redirectToRoute('reservation_success');
+            // Generate QR code
+            $qrCode = new QrCode($this->generateQrCodeContent($reservation));
+            $qrCodePath = 'C:\Users\user\Desktop\3A7\semestre 2\PI\qrcode' . $reservation->getId() . '.png';
+
+
+            // Send email with QR code
+            $this->sendEmailWithQrCode($mailer, $reservation->getEmail(), $qrCodePath);
+
+            return $this->redirectToRoute('app_reservation_index');
         }
 
         return $this->render('reservation/new.html.twig', [
@@ -48,9 +56,33 @@ class ReservationController extends AbstractController
         ]);
     }
 
+    private function generateQrCodeContent(Reservation $reservation): string
+    {
+        // Generate QR code content using reservation information
+        $content = json_encode([
+            'id' => $reservation->getId(),
+            'nomparticipant' => $reservation->getNomparticipant(),
+            // Add other reservation information as needed
+        ]);
+
+        return $content;
+    }
+
+    private function sendEmailWithQrCode(MailerInterface $mailer, string $recipient, string $qrCodePath): void
+    {
+        $email = (new Email())
+            ->from('sahraouikinza121@gmail.com')
+            ->to($recipient)
+            ->subject('Your Reservation QR Code')
+            ->text('Please find your reservation QR code attached.')
+            ->attachFromPath($qrCodePath, 'reservation_qr_code.png');
+
+        $mailer->send($email);
+    }
+
 
     #[Route('/{id}', name: 'app_reservation_show', methods: ['GET'])]
-  public function show(Reservation $reservation): Response
+    public function show(Reservation $reservation): Response
     {
         return $this->render('reservation/show.html.twig', [
             'reservation' => $reservation,
@@ -64,14 +96,14 @@ class ReservationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            $this->getDoctrine()->getManager()->flush();
 
             return $this->redirectToRoute('app_reservation_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('reservation/edit.html.twig', [
+        return $this->render('reservation/edit.html.twig', [
             'reservation' => $reservation,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -79,6 +111,7 @@ class ReservationController extends AbstractController
     public function delete(Request $request, Reservation $reservation, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$reservation->getId(), $request->request->get('_token'))) {
+            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($reservation);
             $entityManager->flush();
         }

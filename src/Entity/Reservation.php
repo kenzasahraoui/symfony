@@ -10,37 +10,84 @@ use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use App\Entity\User;
 use App\Entity\Evenement;
-use Doctrine\ORM\Mapping as ORM;
 
-#[Entity(tableName: "reservation")]
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
+/**
+ * Reservation
+ *
+ * @ORM\Table(name="reservation")
+ * @ORM\Entity
+ */
 class Reservation
 {
-  #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: "AUTO")]
-    private ?int $id;
+    /**
+     * @var int
+     *
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     * @ORM\Column(type="integer")
+     */
+    private $id;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private ?string $nomparticipant;
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $nomparticipant;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private ?string $prenomparticipant;
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $prenomparticipant;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private ?string $email;
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @Assert\Email(message="L'adresse email doit être valide.")
+     */
+    private $email;
 
-    #[ORM\Column(type: "integer", nullable: true)]
-    private ?int $numtel;
+    /**
+     * @var int|null
+     *
+     * @ORM\Column(type="integer", nullable=true)
+     * @Assert\Length(
+     *     min=8,
+     *     max=8,
+     *     exactMessage="Le numéro de téléphone doit être composé de 8 chiffres."
+     * )
+     */
+    private $numtel;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true, name: "typeDeParticipant")]
-    private ?string $typedeparticipant;
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(name="typeDeParticipant", type="string", length=255, nullable=true)
+     * @Assert\Choice(choices={"Etudiant(e)", "Etudiant(e) premium"}, message="Le type de participant doit être 'Etudiant(e)' ou 'Etudiant(e) premium'.")
+     */
+    private $typedeparticipant;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id")]
-    private ?User $idUser = null;
+    /**
+     * @var User|null
+     *
+     * @ORM\ManyToOne(targetEntity="App\Entity\User")
+     * @ORM\JoinColumn(name="id_user", referencedColumnName="id")
+     */
+    private $idUser;
 
-    #[ORM\ManyToOne(targetEntity: Evenement::class)]
-    #[ORM\JoinColumn(name: "event_id", referencedColumnName: "id")]
-    private ?Evenement $event = null;
+    /**
+     * @var Evenement|null
+     *
+     * @ORM\ManyToOne(targetEntity="App\Entity\Evenement")
+     * @ORM\JoinColumn(name="event_id", referencedColumnName="id")
+     */
+    private $event;
 
     public function getId(): ?int
     {
@@ -129,10 +176,5 @@ class Reservation
         $this->event = $event;
 
         return $this;
-    }
-
-    public function getEventNom(): ?string
-    {
-        return $this->event ? $this->event->getNom() : null;
     }
 }

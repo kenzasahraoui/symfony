@@ -48,6 +48,10 @@ class Evenement
      * @var string|null
      *
      * @ORM\Column(name="date", type="string", length=255, nullable=true)
+     * @Assert\Regex(
+     *     pattern="/^\d{2}-\d{2}-\d{4}$/",
+     *     message="La date doit être au format dd-mm-yyyy."
+     * )
      */
     private $date;
 

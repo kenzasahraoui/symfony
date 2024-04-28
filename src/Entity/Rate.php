@@ -4,6 +4,14 @@ namespace App\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\User;
+use App\Entity\Evenement;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\ManyToOne;
 
 /**
  * Rate
@@ -37,22 +45,19 @@ class Rate
     private $status;
 
     /**
-     * @var \User
+     
+     * @var User|null
      *
-     * @ORM\ManyToOne(targetEntity="User")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="id_user", referencedColumnName="id")
-     * })
+     * @ORM\ManyToOne(targetEntity="App\Entity\User")
+     * @ORM\JoinColumn(name="id_user", referencedColumnName="id")
      */
     private $idUser;
 
-    /**
-     * @var \Evenement
+     /**
+     * @var Evenement|null
      *
-     * @ORM\ManyToOne(targetEntity="Evenement")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="id_event", referencedColumnName="id")
-     * })
+     * @ORM\ManyToOne(targetEntity="App\Entity\Evenement")
+     * @ORM\JoinColumn(name="event_id", referencedColumnName="id")
      */
     private $idEvent;
 
@@ -90,21 +95,21 @@ class Rate
         return $this->idUser;
     }
 
-    public function setIdUser(?User $idUser): static
+    public function setIdUser(?User $idUser): self
     {
         $this->idUser = $idUser;
 
         return $this;
     }
 
-    public function getIdEvent(): ?Evenement
+    public function getEvent(): ?Evenement
     {
         return $this->idEvent;
     }
 
-    public function setIdEvent(?Evenement $idEvent): static
+    public function setEvent(?Evenement $event): self
     {
-        $this->idEvent = $idEvent;
+        $this->idEvent = $event;
 
         return $this;
     }
