@@ -8,28 +8,36 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
+
 use Endroid\QrCode\QrCode;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Notifier\Recipient\Recipient;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/reservation')]
 class ReservationController extends AbstractController
 {
     
     #[Route('/reservation', name: 'app_reservation_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager, PaginatorInterface $paginator, Request $request): Response
     {
         $reservations = $this->getDoctrine()->getRepository(Reservation::class)->findAll();
+        $reservations=$paginator->paginate(
+            $reservations,
+            $request->query->getInt('page',1),
+            3
+        );
 
         return $this->render('reservation/index.html.twig', [
             'reservations' => $reservations,
         ]);
+       
     }
 
     #[Route('/new', name: 'app_reservation_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, MailerInterface $mailer): Response
+    public function new(Request $request,EntityManagerInterface $entityManager): Response
     {
         $reservation = new Reservation();
 
@@ -37,16 +45,16 @@ class ReservationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+           
             $entityManager->persist($reservation);
             $entityManager->flush();
 
-            // Generate QR code
-            $qrCode = new QrCode($this->generateQrCodeContent($reservation));
+            // Generate QR code $qrCode = new QrCode($this->generateQrCodeContent($reservation));
             $qrCodePath = 'C:\Users\user\Desktop\3A7\semestre 2\PI\qrcode' . $reservation->getId() . '.png';
 
 
             // Send email with QR code
-            $this->sendEmailWithQrCode($mailer, $reservation->getEmail(), $qrCodePath);
+           
 
             return $this->redirectToRoute('app_reservation_index');
         }
@@ -55,6 +63,8 @@ class ReservationController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+  
 
     private function generateQrCodeContent(Reservation $reservation): string
     {
@@ -68,18 +78,34 @@ class ReservationController extends AbstractController
         return $content;
     }
 
-    private function sendEmailWithQrCode(MailerInterface $mailer, string $recipient, string $qrCodePath): void
+
+
+    #[Route('/ExportPdf/{id}', name: 'app_pdf', methods: ['GET', 'POST'])]
+    public function ExportPdf(Reservation $reservation) :Response
     {
-        $email = (new Email())
-            ->from('sahraouikinza121@gmail.com')
-            ->to($recipient)
-            ->subject('Your Reservation QR Code')
-            ->text('Please find your reservation QR code attached.')
-            ->attachFromPath($qrCodePath, 'reservation_qr_code.png');
+          
+          $options = new Options();
+        $options->set('defaultFont', 'Arial');
 
-        $mailer->send($email);
+        $dompdf = new Dompdf($options);
+        $html = $this->renderView('reservation/pdf.html.twig', [
+            // Pass any necessary data to your Twig template
+            'reservation' => $reservation,
+        ]);
+
+        $dompdf->loadHtml($html);
+
+        // (Optional) Set paper size and orientation
+        $dompdf->setPaper('A4', 'landscape');
+
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF to browser (inline view)
+        return new Response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
-
 
     #[Route('/{id}', name: 'app_reservation_show', methods: ['GET'])]
     public function show(Reservation $reservation): Response

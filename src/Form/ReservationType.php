@@ -26,7 +26,7 @@ class ReservationType extends AbstractType
             ])
             ->add('event', EntityType::class, [
                 'class' => 'App\Entity\Evenement',
-                'choice_label' => 'id', // You can change this to any property you want to display
+                'choice_label' => 'nom', // You can change this to any property you want to display
                 'placeholder' => 'Choisir un evenement',
             ])
         ;

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation {{ reservation_h.id }}</title>
+    <style>
+        /* Define your styles for the PDF here */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+    <center><h1>Reservation N° {{ reservation.id }}</h1></center>
+   <table >
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ reservation.nomparticipant }}</td>
+            </tr>
+            <tr>
+                <th>Nombre d'adultes</th>
+                <td>{{ reservation.prenomparticipant }}</td>
+            </tr>
+            <tr>
+                <th>Nombre d'enfants</th>
+                <td>{{ reservation.email }}</td>
+            </tr>
+            <tr>
+                <th>Arrangement</th>
+                <td>{{ reservation.numtel }}</td>
+            </tr>
+            <tr>
+                <th>Repartition</th>
+                <td>{{ reservation.typedeparticipant }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

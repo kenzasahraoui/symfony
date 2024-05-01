@@ -177,4 +177,12 @@ class Reservation
 
         return $this;
     }
+    // Reservation.php
+
+public function getEventNom(): ?string
+{
+    // Assuming that your Evenement entity has a property called "nom" representing the name of the event
+    return $this->event ? $this->event->getNom() : null;
+}
+
 }

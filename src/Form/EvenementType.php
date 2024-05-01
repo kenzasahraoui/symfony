@@ -6,6 +6,7 @@ use App\Entity\Evenement;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 
 class EvenementType extends AbstractType
 {
@@ -18,7 +19,9 @@ class EvenementType extends AbstractType
             ->add('date')
             ->add('heure')
             ->add('localisation')
-            ->add('image')
+            ->add('image',FileType::class,[
+                'mapped'=>false,
+                'label' => false,])
         ;
     }
 

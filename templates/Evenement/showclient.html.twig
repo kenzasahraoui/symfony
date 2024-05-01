@@ -146,6 +146,7 @@
                     <th scope="col">heure</th>
                     <th scope="col">localisation</th>
                    <th scope="col">image</th>
+                    <th scope="col">action</th>
                 </tr>
             </thead>
             <tbody>
@@ -160,10 +161,8 @@
                         <td>{{ Evenement.localisation }}</td>
                         <td>{{ Evenement.image }}</td>
                          <td>
-
-                    <a href="{{ path('app_evenement_modifier', {'id': Evenement.id}) }}" class="btn btn-primary">Modifier</a>
-                    <a href="{{ path('app_evenement_supprimer', {'id': Evenement.id}) }}" class="btn btn-danger">Supprimer</a>
-
+ <a href="{{ path('rate_event', {'id': Evenement.id}) }}"class="btn btn-primary">Rate</a>
+                   
                          </td>
                     </tr>
                 
@@ -178,7 +177,6 @@
     {% endif %}
      <div class="mt-4">
         <a href="{{ path('app_evenement_ajouter') }}" class="btn btn-success">Ajouter un événement</a>
-       
     </div>
 {% endblock %}
 

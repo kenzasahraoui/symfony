@@ -123,6 +123,11 @@
         {% endfor %}
         </tbody>
     </table>
+    {% if reservations.totalItemCount > reservations.getItemNumberPerPage() %}
+        <div class="pagination">
+            {{ knp_pagination_render(reservations) }}
+        </div>
+    {% endif %}
 
     <a href="{{ path('app_reservation_new') }}">Create new</a>
 {% endblock %}

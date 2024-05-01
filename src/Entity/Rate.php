@@ -57,7 +57,7 @@ class Rate
      * @var Evenement|null
      *
      * @ORM\ManyToOne(targetEntity="App\Entity\Evenement")
-     * @ORM\JoinColumn(name="event_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="id_event", referencedColumnName="id")
      */
     private $idEvent;
 
