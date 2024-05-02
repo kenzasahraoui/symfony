@@ -3,23 +3,35 @@
 namespace App\Controller;
 use App\Entity\Reservation;
 use App\Form\ReservationType;
+use App\Repository\ReservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
 use Endroid\QrCode\QrCode;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Notifier\Recipient\Recipient;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Knp\Component\Pager\PaginatorInterface;
+use App\Services\EventService;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\Writer\PngWriter;
+
+
 
 #[Route('/reservation')]
 class ReservationController extends AbstractController
 {
-    
+    private $mailerService;
+
+    public function __construct(EventService $mailerService)
+    {
+        $this->mailerService = $mailerService;
+    }
+
     #[Route('/reservation', name: 'app_reservation_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager, PaginatorInterface $paginator, Request $request): Response
     {
@@ -39,13 +51,14 @@ class ReservationController extends AbstractController
     #[Route('/new', name: 'app_reservation_new', methods: ['GET', 'POST'])]
     public function new(Request $request,EntityManagerInterface $entityManager): Response
     {
+        
         $reservation = new Reservation();
 
         $form = $this->createForm(ReservationType::class, $reservation);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
-           
+            $email = $form->get('email')->getData();
+
             $entityManager->persist($reservation);
             $entityManager->flush();
 
@@ -55,6 +68,26 @@ class ReservationController extends AbstractController
 
             // Send email with QR code
            
+            $qrCodeContent = "Name: " . $reservation->getEvent()->getNom() . "\n";
+            $qrCodeContent .= "Localisation: " . $reservation->getEvent()->getLocalisation() . "\n";
+            $qrCodeContent .= "Date: " . $reservation->getEvent()->getDate() . "\n";
+            $qrCodeContent .= "heure: " . $reservation->getEvent()->getHeure() . "\n";
+            // Generate QR code
+            $qrCode = new QrCode($qrCodeContent);
+            $qrCode->setSize(300);
+            $qrCode->setEncoding(new Encoding('UTF-8'));
+            $writer = new PngWriter();
+            $qrCodePath = 'barcodes\\' . $reservation->getId() . '.png'; // Provide the path where you want to save the QR code
+            $qrCodeImage = $writer->write($qrCode);  
+            $qrCodeImageContent = $qrCodeImage->getString();
+            file_put_contents($qrCodePath, $qrCodeImageContent);
+
+            $this->mailerService->sendEmailWithAttachment(
+                'Reservation confirmation',
+                'Thank you, ' . $form->get('nomparticipant')->getData() . ' , for reserving a spot at our event. Your reservation has been confirmed.',
+                $email,$qrCodePath
+                
+            );
 
             return $this->redirectToRoute('app_reservation_index');
         }
@@ -62,20 +95,6 @@ class ReservationController extends AbstractController
         return $this->render('reservation/new.html.twig', [
             'form' => $form->createView(),
         ]);
-    }
-
-  
-
-    private function generateQrCodeContent(Reservation $reservation): string
-    {
-        // Generate QR code content using reservation information
-        $content = json_encode([
-            'id' => $reservation->getId(),
-            'nomparticipant' => $reservation->getNomparticipant(),
-            // Add other reservation information as needed
-        ]);
-
-        return $content;
     }
 
 

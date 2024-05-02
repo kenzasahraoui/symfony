@@ -15,6 +15,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Rate;
 use App\Form\RateType;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class EvenementController extends AbstractController
 {
@@ -105,6 +106,26 @@ class EvenementController extends AbstractController
     
         if ($form->isSubmitted()) {
             if ($form->isValid()) {
+
+                  // Gérer l'upload de l'image
+            $imageFile = $form->get('image')->getData();
+
+            if ($imageFile) {
+                // Déplacez le fichier vers le répertoire où vous souhaitez stocker les images
+                $newFilename = uniqid() . '.' . $imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('image_directory'),
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    // Gérer les exceptions liées à l'upload (par exemple, écrire dans les logs)
+                }
+
+                // Mettez à jour l'entité Work avec le nom de fichier de l'image
+                $evenement->setImage($newFilename);
+            }
                 $entityManager->persist($evenement);
                 $entityManager->flush();
     

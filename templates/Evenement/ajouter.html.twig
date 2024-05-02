@@ -8,7 +8,8 @@
         {{ form_row(form.date) }}
         {{ form_row(form.heure) }}
         {{ form_row(form.localisation) }}
-        {{ form_row(form.image) }}
+        {{ form_label(form.image) }} {# Ajouter le label pour le champ image #}
+        {{ form_widget(form.image, {'attr': {'class': 'form-control'}}) }} {# Afficher le champ image avec les attributs de classe #}
 
         <button type="submit" class="btn btn-primary">Ajouter</button>
     {{ form_end(form) }}

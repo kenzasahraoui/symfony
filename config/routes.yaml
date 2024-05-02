@@ -8,3 +8,7 @@ Evenemment_route:
 Reservation_new:
     path: /reservation/new
     controller: App\Controller\ReservationController::new
+
+event_generate_qr:
+    path: /event/generate-qr/{id}
+    controller: App\Controller\ReservationController::generateQrCode

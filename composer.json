@@ -13,6 +13,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^2.18.0",
         "dompdf/dompdf": "^2.0",
+        "endroid/qr-code": "^5.0",
         "geocoder-php/geocoder-extra": "^1.4",
         "geocoder-php/geocoder-service-provider": "^1.0",
         "knplabs/knp-paginator-bundle": "^5.9",
